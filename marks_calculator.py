@@ -17,7 +17,7 @@ subjects = ("english", "islamiat","pakistan_studies","physics","biology","math",
 
 for subject in subjects:
     marks[subject] = int(input(f"Please enter {subject} marks: "))
-    print(type(marks[subject]))
+    
     while not (0 <= marks[subject] <= 150):
         print("Invalid marks!!! \n choose any number between 0 - 150")
         marks[subject] = int(input(f"Please enter {subject} marks: "))
