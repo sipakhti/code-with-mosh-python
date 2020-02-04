@@ -14,4 +14,4 @@ print(first - second)
 print(first ^ second)
 
 # SETS are unordered collections so no indexing options unlike lists
-print(first[0])  # doesn't work and gives a runtime error
+# print(first[0])  # doesn't work and gives a runtime error
