@@ -11,6 +11,14 @@ for char in sentence:
 
 
 print(winner, count)
+count = 0
+temp = []
+char1 = input("which alphabet do you want to count?")
+for char in sentence.lower():
+    if char == char1.lower():
+        count += 1
+
+print(char1, count)
 
 # MOSH METHOD(MODIFIED)
 # char_freq = {}
