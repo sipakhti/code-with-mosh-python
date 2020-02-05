@@ -4,9 +4,11 @@ sentence = input("Please Input a string")
 
 count = 0
 for char in sentence:
-    if sentence.count(char) > count:
-        count = sentence.count(char)
-        winner = char
+    if char != " ":
+        if sentence.count(char) > count:
+            count = sentence.count(char)
+            winner = char
+
 
 print(winner, count)
 
