@@ -28,3 +28,5 @@ try:
         print(f"NAME {name.upper()}\tSALARY: ${salary}")
 except (TypeError, ValueError):
     print("You failed to enter the correct hours")
+
+
