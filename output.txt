@@ -1,0 +1,1 @@
+normal FOR loop: 2071997900 optimzed FOR loop: 1038001600 speed factor: 1.996141335427614normal FOR loop: 2071997900 normal WHILE loop: 4010980000 speed factor: 0.5165814588953324speed factor: 3.864136625608284 (WHILE / optimized FOR)
