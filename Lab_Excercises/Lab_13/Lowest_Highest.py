@@ -8,14 +8,17 @@ def avg(numbers: array):
     return average / len(numbers)
 
 
-def lowest_highest(numbers):
+def lowest_highest(iterable):
+    """ Returns the lowest and highest element of an iterable
+        in a Tuple
+    """
     lowest = 0
     highest = 0
-    for num in numbers:
-        if num > highest:
-            highest = num
-        if num < lowest:
-            lowest = num
+    for element in iterable:
+        if element > highest:
+            highest = element
+        if element < lowest:
+            lowest = element
     return lowest, highest
 
 

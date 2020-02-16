@@ -5,9 +5,9 @@ def print_column(list1: "iterable", list2=[], col1="column 1", col2="column 2", 
         the function creates a second column to display them side by side
         if you want to get the length of individual elements then change dupes=True
         in case of dupes=True then the second argument will not give any results
+        col1 and col2 set the name of the columns for list1 and list2 respectively
     """
-#    if dupes:
-#        list2 = seq_count(list1)
+
 
     if bool(list2):
         print(

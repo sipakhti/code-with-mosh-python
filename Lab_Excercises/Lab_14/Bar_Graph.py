@@ -7,6 +7,8 @@ def bar_grapher(num_bars: int, graph_range: int, height: list, asdata=True, plac
        the bar body, however it could be given any argument to be placed
        instead of "X"
     """
+    if graph_range >= 10:
+        placeholder += " "
 
     print("\n\n")
     graph_range += 1  # so that i can add the column height aboce the bars to help readability of large graphs
@@ -23,7 +25,7 @@ def bar_grapher(num_bars: int, graph_range: int, height: list, asdata=True, plac
             except IndexError:
                 error = True
                 return f"!!!Bar height cannot exceed {graph_range}, Index[{i}] Value: {height[i]}!!!"
-            bar_graph[graph_range-2-height[i]][i] = height[i]
+            bar_graph[-1].insert(i, height[i])
 
     if asdata:
         return bar_graph
@@ -38,6 +40,10 @@ graph_range = int(input("Enter the range of the graph: "))
 height = []
 for x in range(num_bars):
     height.append(
-        int(input(f"Enter height of the bar {num_bars} (max {graph_range}) : ")))
+        int(input(f"Enter height of the bar {x+1} (max {graph_range}) : ")))
 
 bar_grapher(num_bars, graph_range, height, asdata=False)
+
+ending = ""
+while ending.lower() == "q":
+    ending = (input("enter q to quit: "))

@@ -3,7 +3,7 @@ def factorial(number: int):
         number *= n
     return number
 
-def nCr(n: int, r: int):
+def combination(n: int, r: int):
     if n < 0 or r < 0:
         raise ValueError("\033[1;31m!!!Value of 'n' or 'r' cannot be less than '0'!!!\033[0m")
     if r > n:
@@ -15,7 +15,7 @@ def nCr(n: int, r: int):
 
     return ncr
 
-def nPr(n: int, r: int):
+def permutation(n: int, r: int):
     if n < 0 or r < 0:
         raise ValueError("\033[1;31m!!!Value of 'n' or 'r' cannot be less than '0'!!!\033[0m")
     if r > n:
@@ -38,12 +38,12 @@ while True:
 
     if user_input.lower() == "c":
         try:
-            print(f"{val_n}C{val_r} = {nCr(val_n,val_r)} ")
+            print(f"{val_n}C{val_r} = {combination(val_n,val_r)} ")
         except ValueError as error:
             print(error)
     elif user_input.lower() == "p":
         try:
-            print(f"{val_n}P{val_r} = {nPr(val_n,val_r)} ")
+            print(f"{val_n}P{val_r} = {permutation(val_n,val_r)} ")
         except ValueError as error:
             print(error)
 
