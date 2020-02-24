@@ -1,3 +1,4 @@
+
 def factorial(number: int):
     for n in range(1, number):
         number *= n

@@ -12,21 +12,21 @@ def grader(subject_marks, total_marks=150):
     return "F"
 
 
-marks = {"english": 0, "islamiat": 0, "pakistan_studies": 0, "physics": 0, "biology": 0, "math": 0, "urdu": 0, "total": 0}
-subjects = ("english", "islamiat","pakistan_studies","physics","biology","math","urdu")
+# marks = {"english": 0, "islamiat": 0, "pakistan_studies": 0, "physics": 0, "biology": 0, "math": 0, "urdu": 0, "total": 0}
+# subjects = ("english", "islamiat","pakistan_studies","physics","biology","math","urdu")
 
-for subject in subjects:
-    marks[subject] = int(input(f"Please enter {subject} marks: "))
+# for subject in subjects:
+#     marks[subject] = int(input(f"Please enter {subject} marks: "))
 
-    while not (0 <= marks[subject] <= 150):
-        print("Invalid marks!!! \n choose any number between 0 - 150")
-        marks[subject] = int(input(f"Please enter {subject} marks: "))
+#     while not (0 <= marks[subject] <= 150):
+#         print("Invalid marks!!! \n choose any number between 0 - 150")
+#         marks[subject] = int(input(f"Please enter {subject} marks: "))
        
 
-for subject in subjects:
-    print(f"{subject}: {marks[subject]} grade:{grader(marks[subject])}")
-    marks["total"] += marks[subject]
+# for subject in subjects:
+#     print(f"{subject}: {marks[subject]} grade:{grader(marks[subject])}")
+#     marks["total"] += marks[subject]
 
-print(f"TOTAL: {marks['total']}  grade:{grader(marks['total'],1050)}")
-print("TOTAL: {}  grade:{}".format(marks["total"],grader(marks["total"],1050)))
+# print(f"TOTAL: {marks['total']}  grade:{grader(marks['total'],1050)}")
+# print("TOTAL: {}  grade:{}".format(marks["total"],grader(marks["total"],1050)))
 

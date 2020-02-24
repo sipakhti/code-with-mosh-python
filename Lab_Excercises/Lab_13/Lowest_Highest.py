@@ -1,6 +1,7 @@
 from array import array
 
 
+
 def avg(numbers: array):
     average = 0
     for x in numbers:

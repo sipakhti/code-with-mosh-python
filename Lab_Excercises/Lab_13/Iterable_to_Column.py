@@ -68,13 +68,69 @@ def replace_element(iterable,  substitute: "substitute value", string: str = "ex
     return iterable
 
 
+class Umer:
+    vals = []
+    __length = []
+
+    def __init__(self, vals):
+        Umer.vals = vals
+
+    def seq_count(self, length = __length):
+        """ Calculates length of individual elements of any iterbale(list, tuple, array)
+        and returns a list whose indexes correspond with the original elements index
+        """
+
+        count = 0
+        for item in self.vals:
+            count = 0
+            for element in item:
+                count += 1
+            length.append(count)
+
+        return length
+
+    def replace_element(self,  substitute: "substitute value", string: str = "existing value", index=None, dontcare: bool = False):
+        """replaces the element that matches the parameter or index, with the given value
+       raises ValueError if datatype of string to substitute doesnt match the already
+       existing datatype. change dontcare=True to bypass the error
+
+       substitute = THE VALUE YOU WANT TO ADD INSTEAD
+       string = THE EXISTING VALUE YOU WANT TO REPLACE
+       index = IF YOU WANT TO REPLACE THE VALUE AT A SPECIFIC INDEX
+       dontcare = True, if you want to replace the values which have different data types
+        """
+
+        if dontcare == False:
+            if isinstance(substitute, str) and not isinstance(self.vals[0], str):
+                raise ValueError(
+                    "iterable and string have datatype mismatch\n set argument 'dontcare' to True if you want to do this operation")
+
+# IF USER WANTS TO CHANGE THE ELEMENT BUT DONT INPUT THE INDEX
+        if index == None:
+            for i in range(len(self.vals)):
+                if self.vals[i].lower() == string.lower():
+                    self.vals[i] = substitute
+
+# IF USER WANTS TO CHANGE THE ELEMENT AT A SPECIFIC INDEX
+        if index != None:
+            self.vals[index] = substitute
+
+        return self.vals
+
+
 user_input = input("Enter a string:\n")
 user_list = user_input.split()
+
+test = Umer(user_list)
+print("test  ", test.seq_count() )
+
 
 print_column(user_list, col1="words", col2="count", dupes=True)
 
 user_input = input("Enter the word you want to replace: ")
 user_sub = input("Enter the word you want to add: ")
+
+print("test  ", test.replace_element(user_sub, user_input))
 
 print_column(replace_element(user_list, user_sub, user_input),
              col1="words", col2="count", dupes=True)
