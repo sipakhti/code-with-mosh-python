@@ -135,6 +135,7 @@ def scrabble_number(num):
 
     count = 0
     diviser = 1
+    # loops through the number to count the digits
     while num % diviser != num:
         diviser *= 10
         count += 1
