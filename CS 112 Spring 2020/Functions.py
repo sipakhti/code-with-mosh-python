@@ -165,7 +165,7 @@ def scrabble_number(num):
             diviser *= 100
             limiter += 1
 
-        # adds the single digit at the extreme right in case of odd number of digits
+        # adds the single digit at the extreme left in case of odd number of digits
         scrambled_num += (num//diviser) * diviser
 
     return scrambled_num
