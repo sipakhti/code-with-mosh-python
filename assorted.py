@@ -1,5 +1,3 @@
-
-
 import math as m
 
 
@@ -34,7 +32,7 @@ def avg(numbers):
 
 
 def lowest_highest(iterable):
-    """ Returns the lowest and highest element of an iterable
+    """ Returns the lowest and highest element of an iterable (list, tuple, array)
         in a Tuple
     """
     lowest = 0
@@ -103,13 +101,13 @@ def replace_element(iterable,  substitute: "substitute value", string: str = "ex
             raise ValueError(
                 "iterable and string have datatype mismatch\n set argument 'dontcare' to True if you want to do this operation")
 
-# IF USER WANTS TO CHANGE THE ELEMENT BUT DONT INPUT THE INDEX
+    # IF USER WANTS TO CHANGE THE ELEMENT BUT DONT INPUT THE INDEX
     if index == None:
         for i in range(len(iterable)):
             if iterable[i].lower() == string.lower():
                 iterable[i] = substitute
 
-# IF USER WANTS TO CHANGE THE ELEMENT AT A SPECIFIC INDEX
+    # IF USER WANTS TO CHANGE THE ELEMENT AT A SPECIFIC INDEX
     if index != None:
         iterable[index] = substitute
 
@@ -117,15 +115,19 @@ def replace_element(iterable,  substitute: "substitute value", string: str = "ex
 
 
 def count_occurances(iterable: "Iterable", element=""):
+
     num_freq = {}
     for num in iterable:
-        if num in num_freq:
-            num_freq[num] += 1
+        if num.lower() in num_freq:
+            num_freq[num.lower()] += 1
         else:
-            num_freq[num] = 1
+            num_freq[num.lower()] = 1
 
-    if element != "":
-        return num_freq[element]
+    try:
+        if element != "":
+            return element, num_freq[element.lower()]
+    except KeyError:
+        return element, 0
 
     sorted_num_freq = sorted(
         num_freq.items(), key=lambda kv: kv[1], reverse=True)
@@ -209,16 +211,16 @@ def hi_temp(iterable: "of type int"):
 def hailstone(number, step=1):
     if isinstance(number, str):
         number = int(number)
-# HAILSTONE SEQUENCE PRINTING
+    # HAILSTONE SEQUENCE PRINTING
     newline = " "
     if step % 10 == 0:
         newline = f"[{step}]\n"
     print(number, end=f"{newline}")
-# RECURSION LIMITER
+    # RECURSION LIMITER
     if number == 1:
         print(f"\rSteps : {step} ")
         return 1
-# HAILSTONE SEQUENCE CALCULATION
+    # HAILSTONE SEQUENCE CALCULATION
     elif number % 2 == 1:
         number = number * 3 + 1
     elif number % 2 == 0:
@@ -318,3 +320,41 @@ def slope(x1: int, x2: int, y1: int, y2: int):
     if x1 == x2:
         raise ValueError("Vertical - Undefined Slope")
     return (y2 - y1) / (x2 - x1)
+
+
+def to_json(filepath, obj):
+    """saves the object in a file using JSON module"""
+
+    from os import path
+    import json
+
+    overwrite = True
+    # to make sure that user knows that he could overwrite existing data if present
+    if path.exists(filepath):
+        print(
+            "the file {filepath} already exists\nproceeding will overwrtite the existing data")
+        user_input = input("Press Y to continue or Press N to to stop: ")
+        if user_input.lower() == "n":
+            overwrite == False
+
+    if overwrite:
+        with open(filepath, "w") as f_obj:
+            json.dump(obj, f_obj)
+            print("Your file has be saved!")
+            exit()
+    elif overwrite:
+        return None
+
+
+def from_json(filepath):
+
+    from json import load
+
+    try:
+        with open(filepath) as f_obj:
+            variable = load(f_obj)
+    except FileNotFoundError:
+        print("The file you requested cannot be found at the specified place")
+        exit()
+    else:
+        return variable
