@@ -358,3 +358,14 @@ def from_json(filepath):
         exit()
     else:
         return variable
+
+
+def str_to_int_list(string: str, seperator=" "):
+    """takes integer string in which individual elements are 
+        sepearated by a blank and returns an integer list
+    """
+    numbers = []
+    for value in string.split(seperator):
+        numbers.append(int(value))
+
+    return numbers
