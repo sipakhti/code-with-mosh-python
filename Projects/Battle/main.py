@@ -4,7 +4,7 @@ import random
 
 class Person:
 
-    def __init__(self, hp, mp, atk, df, magic=[], items=[]):
+    def __init__(self, hp, mp, atk, df, magic=[], items=[], money=0):
         self.max_hp = hp
         self.hp = hp
         self.max_mp = mp
@@ -14,6 +14,7 @@ class Person:
         self.df = df
         self.magic = magic
         self.items = items
+        self.money = int(money)
         self.action = ["Attack", "Magic", "Item"]
 
     # Alternate Contructor for Magic Property
@@ -52,6 +53,16 @@ class Person:
         else:
             self.hp += amount
 
+    def heal_mp(self, amount):
+        if self.mp + amount > self.max_mp:
+            self.mp = self.max_mp
+        else:
+            self.mp += amount
+
+    def elixer_boost(self):
+        self.hp = self.max_hp
+        self.mp = self.max_mp
+
     def get_mp(self):
         """Returns current MP"""
         return self.mp
@@ -66,23 +77,17 @@ class Person:
         """
         self.mp -= self.magic[i].cost
 
-    def heal_mp(self, amount):
-        if self.mp + amount > self.max_mp:
-            self.mp = self.max_mp
-        else:
-            self.mp += amount
-
     def choose_action(self):
         """prints on the screen the actions that a user can take"""
         i = 1
-        print("Actions")
+        print(Bcolors.OKBLUE, "Actions", Bcolors.ENDC)
         for item in self.action:
-            print(str(i) + ":", item)
+            print("    " + str(i) + ":", item)
             i += 1
 
     def choose_magic(self):
         """prints on the screen availible spells"""
-        print("Magic")
+        print("\n", Bcolors.OKGREEN, "Magic", Bcolors.ENDC)
         i = 1
         for spell in self.magic:
             # usre_friendly output as it color codes the COST if MP is not sufficient
@@ -90,12 +95,13 @@ class Person:
                 x = Bcolors.FAIL
             else:
                 x = Bcolors.OKGREEN
-            print(f"{i}: {spell.name} {x} (cost: {spell.cost}) {Bcolors.ENDC} (damage: {spell.dmg}) (Remaining : {self.mp//spell.cost})")
+            print(
+                f"    {i}: {spell.name} {x} (cost: {spell.cost}) {Bcolors.ENDC} (damage: {spell.dmg}) (Remaining : {self.mp//spell.cost})")
             i += 1
 
     def choose_item(self):
         i = 1
-        print(f"{Bcolors.OKGREEN}{Bcolors.BOLD} ITEM {Bcolors.ENDC}")
+        print(f"\n{Bcolors.OKGREEN}{Bcolors.BOLD} ITEM {Bcolors.ENDC}")
         for item in self.items:
             if item.qty == 0:
                 x = Bcolors.FAIL
@@ -103,7 +109,7 @@ class Person:
                 x = Bcolors.WARNING
             else:
                 x = Bcolors.OKGREEN
-            print(f"{i}: {item.name} {x}(QTY: {item.qty}){Bcolors.ENDC}")
+            print(f"    {i}: {item.name} {x}(x{item.qty}){Bcolors.ENDC}")
             i += 1
 
 
@@ -145,57 +151,138 @@ class Spell:
 
 class Item:
 
-    def __init__(self, name, typ, description, prop: int, qty: int):
+    def __init__(self, name, typ, description, prop: int, qty: int, price: int):
         self.name = name
         self.typ = typ
         self.description = description
         self.prop = int(prop)
         self.qty = int(qty)
+        self.price = int(price)
 
     @classmethod
-    def from_string(cls, item_sring, seperator="-"):
+    def from_string(cls, item_string, seperator="-", shop=False):
         """parses string seperated by a custom seperator into individual
            attributes.
            By default the "-" is the seperator
         """
-        name, typ, description, prop, qty = item_sring.split(seperator)
-        return cls(name, typ, description, prop, qty)
+        name, typ, description, prop, qty, price = item_string.split(seperator)
+        return cls(name, typ, description, prop, qty, price) if shop == False else cls(name, typ, description, prop, 99, price)
 
     def reduce_quantity(self):
         self.qty -= 1
 
 
-# # Create Black Magic
-# fire = Spell.from_string("Fire-10-100-black")
-# thunder = Spell.from_string("Thunder-10-100-black")
-# blizzard = Spell.from_string("Blizzard-10-100-black")
-# meteor = Spell.from_string("Meteor-20-200-black")
-# quake = Spell.from_string("Quake-14-140-black")
+class Shop:
 
-# # Create White Magic
-# cure = Spell.from_string("Cure-12-120-white")
-# cura = Spell.from_string("Cure-18-200-white")
-# [fire,thunder,blizzard,meteor,quake,cure,cura]
+    def __init__(self, items=[]):
+        self.items = items
+
+    def sell_items(self, player):
+        print("*"*20)
+        print(Bcolors.BOLD, "The shop is selling:", Bcolors.ENDC)
+        print("~"*50)
+        i = 1
+        for item in self.items:
+            if item.price > player.money:
+                x = Bcolors.FAIL
+            else:
+                x = Bcolors.OKGREEN
+
+            print(
+                f"{i}: {item.name}  {item.description} {x} {item.price}{Bcolors.ENDC}")
+
+            print("-"*50)
+            i += 1
+        while True:
+            try:
+                item_choice = int(input("Choose an item to buy: ")) - 1
+                verify=self.items[item_choice]
+            except (IndexError,ValueError):
+                print(f"{Bcolors.WARNING}the item doesnt exist. choose the correct item\n{Bcolors.ENDC}")
+            else:
+                break
+
+        if player.money < self.items[item_choice].price:
+            print(f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
+            return None
+
+        buy_qty = int(
+            input(f"How many {self.items[item_choice].name} do you want to buy: "))
+
+        total = buy_qty*self.items[item_choice].price
+
+        if total > player.money:
+            print(
+                f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
+        else:
+            player.money -= total
+            print(
+                f"{Bcolors.OKGREEN}You successfully bought {buy_qty} x {self.items[item_choice].name} for {total} credits.{Bcolors.ENDC}")
+            print(f"Your remaining credits are: {player.money}")
+        # IF THE PLAYER DOESNT HAVE ENOUGH CASH
+        # if player.money < self.items[item_choice].price:
+        #     print(f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
+        # else:
+        #     player.money -= self.items[item_choice].price
+        #     print(f"{Bcolors.OKGREEN}You successfully bought {self.items[item_choice].name} for {self.items[item_choice].price} credits.{Bcolors.ENDC}")
+        # print(f"Your remaining credits are: {player.money}")
+
+
+# Create Black Magic
+fire = Spell.from_string("Fire-10-100-black")
+thunder = Spell.from_string("Thunder-10-100-black")
+blizzard = Spell.from_string("Blizzard-10-100-black")
+meteor = Spell.from_string("Meteor-20-200-black")
+quake = Spell.from_string("Quake-14-140-black")
+
+# Create White Magic
+cure = Spell.from_string("Cure-12-120-white")
+cura = Spell.from_string("Cure-18-200-white")
+
 
 # Create Some items
-potion = Item.from_string("Potion-potion-Heals 50 HP-50-2")
-hipotion = Item.from_string("HiPotion-potion-Heals 100 HP-100-1")
-superpotion = Item.from_string("SuperPotion-potion-Heals 500 HP-500-0")
+potion = Item.from_string("Potion-potion-Heals 50 HP-50-2-70")
+hipotion = Item.from_string("HiPotion-potion-Heals 100 HP-100-1-110")
+superpotion = Item.from_string("SuperPotion-potion-Heals 500 HP-500-0-200")
+megapotion = Item.from_string(
+    "MegaPotion-potion-Heals entire party HP-9999-1-500")
 elixer = Item.from_string(
-    "Elixer-elixer-Fully Restores HP/MP of one party-9999-1")
+    "Elixer-elixer-Fully Restores HP/MP of one party-9999-1-300")
 hielixer = Item.from_string(
-    "HiElixer-elixer-Fully Restores party's HP/MP-9999-0")
+    "HiElixer-elixer-Fully Restores party's HP/MP-9999-2-600")
 
-grenade = Item.from_string("Grenade-attack-Deals 500 Damage-500-1")
+grenade = Item.from_string("Grenade-attack-Deals 500 Damage-500-1-450")
 
-items = [potion, hipotion, superpotion, elixer, hielixer, grenade]
+
+potion_s = Item.from_string("Potion-potion-Heals 50 HP-50-2-70", shop=True)
+hipotion_s = Item.from_string(
+    "HiPotion-potion-Heals 100 HP-100-1-110", shop=True)
+superpotion_s = Item.from_string(
+    "SuperPotion-potion-Heals 500 HP-500-0-200", shop=True)
+megapotion_s = Item.from_string(
+    "MegaPotion-potion-Heals entire party HP-9999-1-500", shop=True)
+elixer_s = Item.from_string(
+    "Elixer-elixer-Fully Restores HP/MP of one party-9999-1-300", shop=True)
+hielixer_s = Item.from_string(
+    "HiElixer-elixer-Fully Restores party's HP/MP-9999-2-600", shop=True)
+
+grenade_s = Item.from_string(
+    "Grenade-attack-Deals 500 Damage-500-1-450", shop=True)
+
+player_items = [potion, hipotion, superpotion,
+                megapotion, elixer, hielixer, grenade]
+player_spells = [fire, thunder, blizzard, meteor, quake, cure, cura]
+shop_items = [potion_s, hipotion_s, superpotion_s, megapotion_s,
+              elixer_s, hielixer_s, grenade_s]
 
 # INSTANTIATION
-player = Person(460, 65, 60, 34, items=items)
-enemy = Person(1200, 65, 45, 25)
-3
-player.mag_from_string(
-    "Fire-10-100-Black,Blizzard-10-100-Black,Cure-12-120-White")
+player = Person(460, 65, 60, 34, player_spells, player_items)
+player2 = Person(500, 70, 60, 34, player_spells, player_items)
+enemy = Person(500, 65, 45, 25)
+
+item_shop = Shop(shop_items)
+
+
 running = True
 
 
@@ -225,18 +312,24 @@ while running:
     elif index == 1:
         print("==================================")
         player.choose_magic()
+        print("Enter 0 if you want to go to the previous menu")
 
         while True:
 
-            magic_choice = int(input("Choose Magic: ")) - 1
             # TRY block to make sure that the user input is within range
             try:
+                magic_choice = int(input("Choose Magic: ")) - 1
+                if magic_choice == -1:
+                    break
                 spell = player.magic[magic_choice]
-            except IndexError:
+            except (IndexError, ValueError):
                 print(
                     f"{Bcolors.WARNING}NO SUCH SPELL EXIST. SELECT THE CORRECT SPELL{Bcolors.ENDC}")
             else:
                 break
+        # if the user wants to go back
+        if magic_choice == -1:
+            continue
 
         magic_damage = spell.generate_damage()
         current_mp = player.get_mp()
@@ -246,16 +339,16 @@ while running:
             print(Bcolors.FAIL, "\n not enough MP \n", Bcolors.ENDC)
             continue
 
-            player.reduce_mp(magic_choice)
+        player.reduce_mp(magic_choice)
         # spells that attack (BLACK)
-        if spell.typ == "Black":
+        if spell.typ.lower() == "black":
             print(
                 f"{Bcolors.OKBLUE} the {spell.name} does {magic_damage} damage {Bcolors.ENDC} ")
             enemy.take_damage(magic_damage)
             print(f"the player did {magic_damage} damage to the enemy.")
 
         # Spells that Heal (WHITE)
-        elif spell.typ == "White":
+        elif spell.typ.lower() == "white":
             print(
                 f"{Bcolors.OKGREEN} the {spell.name} Heals {magic_damage} HP {Bcolors.ENDC} ")
 
@@ -265,7 +358,12 @@ while running:
 # if player choose ITEM
     elif index == 2:
         player.choose_item()
+        print("Enter 0 if you want to go to the previous menu")
         item_choice = int(input("Choose Item: ")) - 1
+
+        # if the user wants to go back
+        if item_choice == -1:
+            continue
 
         item = player.items[item_choice]
         item.reduce_quantity()
@@ -288,6 +386,7 @@ while running:
 
     enemy_dmg = enemy.generate_damage()
     player.take_damage(enemy_dmg)
+    player2.take_damage(enemy_dmg)
 
     # changes color of player's current HP according to remaining HP
     if player.get_hp() / player.get_max_hp() < 0.15:
@@ -307,10 +406,34 @@ while running:
         f"PLAYER HP:{x} {player.get_hp()}/{player.get_max_hp()}{Bcolors.ENDC}")
     print(
         f"YOUR MP:{Bcolors.OKBLUE} {player.get_mp()}/{player.get_max_mp()}{Bcolors.ENDC}")
+    # print(
+    #     f"PLAYER2 HP:{x} {player2.get_hp()}/{player2.get_max_hp()}{Bcolors.ENDC}")
+    # print(
+    #     f"YOUR MP:{Bcolors.OKBLUE} {player2.get_mp()}/{player2.get_max_mp()}{Bcolors.ENDC}")
 
     # Fail or Win check
     if enemy.get_hp() == 0:
+
         print(f"{Bcolors.OKGREEN} you win! {Bcolors.ENDC}")
+
+        player.money += 500
+        print("You won 500 credits. You can buy various items with them")
+        restart = input("Press Enter to advance to next level")
+        enter_shop = input(
+            "Now you can buy items from the shop!!\n Press Y to enter and N to continue: ")
+
+        if enter_shop.lower() == "y":
+            while True:
+                item_shop.sell_items(player)
+
+                remain_in_shop = input(
+                    "Press 'Q' to exit the shop.\nPress enter to continue shopping: ")
+                if remain_in_shop.lower() != "q":
+                    continue
+                else:
+                    print("*"*20)
+                    break
+
         running = False
     elif player.get_hp() == 0:
         print(f"{Bcolors.FAIL} you lost! {Bcolors.ENDC}")
