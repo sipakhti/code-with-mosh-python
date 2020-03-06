@@ -46,6 +46,7 @@ while True:
     print(f"TOTAL: {marks['total']}  grade:{grader(marks['total'],1050)}")
     print("TOTAL: {}  grade:{}".format(
         marks["total"], grader(marks["total"], 1050)))
+
 # creates a cummulaive string containig all the student data seperated by comma to be parsed in a database
     name = f"\r{student_name}"
     sub = ""

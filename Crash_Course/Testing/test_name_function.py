@@ -16,4 +16,5 @@ class TestNameFunction(unittest.TestCase):
         test_name = formatted_name("Umer", "khan", "mehmood")
         self.assertEqual(test_name, "Umer Mehmood Khan")
 
+
 unittest.main()
