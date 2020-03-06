@@ -206,8 +206,14 @@ class Shop:
             print(f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
             return None
 
-        buy_qty = int(
-            input(f"How many {self.items[item_choice].name} do you want to buy: "))
+        while True:   
+            try:
+                buy_qty = int(
+                    input(f"How many {self.items[item_choice].name} do you want to buy: "))
+            except ValueError:
+                print(f"{Bcolors.FAIL}Enter a number greater than 0{Bcolors.ENDC}")
+            else:
+                break
 
         total = buy_qty*self.items[item_choice].price
 
@@ -296,7 +302,8 @@ while running:
     # TRY block so that wrong input leads to player attacking by default
     try:
         index = int(choice) - 1
-    except ValueError:
+        player.action[index]
+    except (ValueError,IndexError):
         index = 0
     else:
         print(f"You chose {player.action[index]}!")
@@ -358,14 +365,22 @@ while running:
 # if player choose ITEM
     elif index == 2:
         player.choose_item()
-        print("Enter 0 if you want to go to the previous menu")
-        item_choice = int(input("Choose Item: ")) - 1
+        while True:
+            try:
+                print("Enter 0 if you want to go to the previous menu")
+                item_choice = int(input("Choose Item: ")) - 1
+                item = player.items[item_choice]
+            except (ValueError,IndexError):
+                print(f"{Bcolors.WARNING}Wrong Input!{Bcolors.ENDC}")
+            else:
+                break
+
 
         # if the user wants to go back
         if item_choice == -1:
             continue
 
-        item = player.items[item_choice]
+        
         item.reduce_quantity()
         print(f"{Bcolors.OKBLUE}{item.name} {item.description}{Bcolors.ENDC}")
 
@@ -419,10 +434,11 @@ while running:
         player.money += 500
         print("You won 500 credits. You can buy various items with them")
         restart = input("Press Enter to advance to next level")
+
         enter_shop = input(
             "Now you can buy items from the shop!!\n Press Y to enter and N to continue: ")
 
-        if enter_shop.lower() == "y":
+        if enter_shop.lower() == "y" or enter_shop == "":
             while True:
                 item_shop.sell_items(player)
 
