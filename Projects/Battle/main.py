@@ -4,17 +4,20 @@ import random
 
 class Person:
 
-    def __init__(self, hp, mp, atk, df, magic=[], items=[], money=0):
-        self.max_hp = hp
-        self.hp = hp
-        self.max_mp = mp
-        self.mp = mp
-        self.atkl = atk - 10
-        self.atkh = atk + 10
-        self.df = df
+    def __init__(self, hp, mp, atk, df, magic=[], items=[], money=0,level=1):
+
+        self.max_hp = hp 
+        self.hp = hp 
+        self.max_mp = mp 
+        self.mp = mp 
+        self.atk = atk 
+        self.atkl = self.atk - 10
+        self.atkh = self.atk + 10
+        self.df = df 
         self.magic = magic
         self.items = items
         self.money = int(money)
+        self.level = level
         self.action = ["Attack", "Magic", "Item"]
 
     # Alternate Contructor for Magic Property
@@ -27,10 +30,25 @@ class Person:
         magics = mag_string.split(",")
         for magic in magics:
             self.magic.append(Spell.from_string(magic))
+        
+    def level_up(self):
+        self.level +=1
+        self.max_hp = int(self.max_hp * (1+self.level/20))
+        self.max_mp = int(self.max_mp * (1+self.level/20))
+        self.atk = int(self.atk * (1+self.level/20))
+        self.df = int(self.df * (1+self.level/20))
 
-    def generate_damage(self):
+        self.reset_stats()
+
+    def reset_stats(self):
+        self.hp = self.max_hp
+        self.mp = self.max_mp
+
+
+    def generate_damage(self,attackee):
         """ Generate random damage"""
-        return random.randrange(self.atkl, self.atkh)
+        atk_loss_factor = attackee.df/10
+        return random.randrange((self.atkl//atk_loss_factor), (self.atkh//atk_loss_factor))
 
     def take_damage(self, dmg):
         """take damage"""
@@ -87,10 +105,11 @@ class Person:
 
     def choose_magic(self):
         """prints on the screen availible spells"""
-        print("\n", Bcolors.OKGREEN, "Magic", Bcolors.ENDC)
+        print("-"*50)
+        print(Bcolors.OKGREEN, "Magic", Bcolors.ENDC)
         i = 1
         for spell in self.magic:
-            # usre_friendly output as it color codes the COST if MP is not sufficient
+            # color codes the COST if MP is not sufficient
             if spell.cost > self.get_mp():
                 x = Bcolors.FAIL
             else:
@@ -101,16 +120,30 @@ class Person:
 
     def choose_item(self):
         i = 1
-        print(f"\n{Bcolors.OKGREEN}{Bcolors.BOLD} ITEM {Bcolors.ENDC}")
+        print("-"*50)
+        print(f"\r{Bcolors.OKGREEN}{Bcolors.BOLD}YOUR ITEMS {Bcolors.ENDC}")
+        self.test()
         for item in self.items:
-            if item.qty == 0:
-                x = Bcolors.FAIL
-            elif item.qty == 1:
+            # changes color of the quantity if its low
+            if item.qty == 1:
                 x = Bcolors.WARNING
             else:
                 x = Bcolors.OKGREEN
-            print(f"    {i}: {item.name} {x}(x{item.qty}){Bcolors.ENDC}")
-            i += 1
+            # only prints out those items which the player has i.e those items whose qty is > 0
+            if item.qty > 0:
+                print(f"    {i}: {item.name} {x}(x{item.qty}){Bcolors.ENDC}")
+                i += 1
+            else:
+                pass
+
+    def optimize_items(self):
+        i = 0
+        print(type(self.items))
+        for index in range(len(self.items)):
+            if self.items[index].qty == 0:
+                self.items.append(self.items[index])
+                self.items.pop(index) 
+            
 
 
 class Spell:
@@ -195,18 +228,24 @@ class Shop:
             i += 1
         while True:
             try:
+                print("press ENter to go back")
                 item_choice = int(input("Choose an item to buy: ")) - 1
-                verify=self.items[item_choice]
-            except (IndexError,ValueError):
-                print(f"{Bcolors.WARNING}the item doesnt exist. choose the correct item\n{Bcolors.ENDC}")
+                self.items[item_choice+1]
+                verify = self.items[item_choice]
+            except IndexError:
+                print(
+                    f"{Bcolors.WARNING}the item doesnt exist. choose the correct item\n{Bcolors.ENDC}")
+            except ValueError:
+                return None
             else:
                 break
 
         if player.money < self.items[item_choice].price:
-            print(f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
+            print(
+                f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
             return None
 
-        while True:   
+        while True:
             try:
                 buy_qty = int(
                     input(f"How many {self.items[item_choice].name} do you want to buy: "))
@@ -225,6 +264,8 @@ class Shop:
             print(
                 f"{Bcolors.OKGREEN}You successfully bought {buy_qty} x {self.items[item_choice].name} for {total} credits.{Bcolors.ENDC}")
             print(f"Your remaining credits are: {player.money}")
+            self.items[item_choice].qty += buy_qty
+            
         # IF THE PLAYER DOESNT HAVE ENOUGH CASH
         # if player.money < self.items[item_choice].price:
         #     print(f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
@@ -232,6 +273,8 @@ class Shop:
         #     player.money -= self.items[item_choice].price
         #     print(f"{Bcolors.OKGREEN}You successfully bought {self.items[item_choice].name} for {self.items[item_choice].price} credits.{Bcolors.ENDC}")
         # print(f"Your remaining credits are: {player.money}")
+
+
 
 
 # Create Black Magic
@@ -296,6 +339,8 @@ print(Bcolors.FAIL + Bcolors.BOLD + "AN ENEMY ATTACKS" + Bcolors.ENDC)
 
 # Main program Block
 while running:
+
+
     print("==================================")
     player.choose_action()
     choice = input("Choose action: ")
@@ -303,21 +348,21 @@ while running:
     try:
         index = int(choice) - 1
         player.action[index]
-    except (ValueError,IndexError):
+    except (ValueError, IndexError):
         index = 0
     else:
         print(f"You chose {player.action[index]}!")
 
 # IF player choose to attack
     if index == 0:
-        print("==================================")
-        dmg = player.generate_damage()
+        print("="*50)
+        dmg = player.generate_damage(enemy)
         enemy.take_damage(dmg)
         print(f"the player did {dmg} damage to the enemy.")
 
 # IF player choose to use magic
     elif index == 1:
-        print("==================================")
+        print("="*50)
         player.choose_magic()
         print("Enter 0 if you want to go to the previous menu")
 
@@ -364,23 +409,23 @@ while running:
 
 # if player choose ITEM
     elif index == 2:
+        print("="*50)
         player.choose_item()
         while True:
+
             try:
                 print("Enter 0 if you want to go to the previous menu")
                 item_choice = int(input("Choose Item: ")) - 1
                 item = player.items[item_choice]
-            except (ValueError,IndexError):
+            except (ValueError, IndexError):
                 print(f"{Bcolors.WARNING}Wrong Input!{Bcolors.ENDC}")
             else:
                 break
-
 
         # if the user wants to go back
         if item_choice == -1:
             continue
 
-        
         item.reduce_quantity()
         print(f"{Bcolors.OKBLUE}{item.name} {item.description}{Bcolors.ENDC}")
 
@@ -399,7 +444,7 @@ while running:
 
     enemy_choice = 1
 
-    enemy_dmg = enemy.generate_damage()
+    enemy_dmg = enemy.generate_damage(player)
     player.take_damage(enemy_dmg)
     player2.take_damage(enemy_dmg)
 
@@ -449,7 +494,15 @@ while running:
                 else:
                     print("*"*20)
                     break
-
-        running = False
+            
+        play_again = input("Press enter to continue else type Q to quit: ")
+        if play_again.lower() == "q":
+            running = False
+        else:
+            enemy.max_hp += int(player.hp*0.1)
+            player.level_up()
+            enemy.reset_stats()
+            enemy.atk += 5
+            running = True
     elif player.get_hp() == 0:
         print(f"{Bcolors.FAIL} you lost! {Bcolors.ENDC}")
