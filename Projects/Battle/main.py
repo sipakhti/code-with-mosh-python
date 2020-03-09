@@ -1,54 +1,63 @@
 from Classes.game import Bcolors
 import random
+from assorted import to_json
+import json
+from os import path
+import pickle
+
+
+
 
 
 class Person:
 
-    def __init__(self, hp, mp, atk, df, magic=[], items=[], money=0,level=1):
+    def __init__(self, name, hp:int, mp:int, atk:int, df:int, magic=[], items=[], money=0, level=1:int):
 
-        self.max_hp = hp 
-        self.hp = hp 
-        self.max_mp = mp 
-        self.mp = mp 
-        self.atk = atk 
+        self.name = name
+        self.max_hp = int(hp)
+        self.hp = int(hp)
+        self.max_mp = int(mp)
+        self.mp = int(mp)
+        self.atk = int(atk)
         self.atkl = self.atk - 10
         self.atkh = self.atk + 10
-        self.df = df 
+        self.df = int(df)
         self.magic = magic
         self.items = items
         self.money = int(money)
-        self.level = level
+        self.level = int(level)
         self.action = ["Attack", "Magic", "Item"]
 
     # Alternate Contructor for Magic Property
     def mag_from_string(self, mag_string):
-        """parses the string in which spells are seperated with a ","
+        """parses the string in which spells are seperated with a "-"
            and then passes the parsed string to the Spell class'
            alternate constructor and saves the object that is 
            instantiated in a list
         """
-        magics = mag_string.split(",")
-        for magic in magics:
-            self.magic.append(Spell.from_string(magic))
-        
+
+        self.magic.append(Spell.from_string(mag_string))
+
     def level_up(self):
-        self.level +=1
-        self.max_hp = int(self.max_hp * (1+self.level/20))
-        self.max_mp = int(self.max_mp * (1+self.level/20))
-        self.atk = int(self.atk * (1+self.level/20))
-        self.df = int(self.df * (1+self.level/20))
+        self.level += 1
+        self.max_hp += int(self.max_hp * (self.level/200))
+        self.max_mp += int(self.max_mp * (self.level/200))
+        self.atk = int(self.atk * (1+self.level/50))
+        self.df = int(self.df * (1+self.level/50))
+        self.atkl = self.atk-10
+        self.atkh = self.atk+10
 
         self.reset_stats()
 
     def reset_stats(self):
         self.hp = self.max_hp
         self.mp = self.max_mp
+        self.atkl = self.atk-10
+        self.atkh = self.atk+10
 
-
-    def generate_damage(self,attackee):
+    def generate_damage(self, attackee):
         """ Generate random damage"""
-        atk_loss_factor = attackee.df/10
-        return random.randrange((self.atkl//atk_loss_factor), (self.atkh//atk_loss_factor))
+        return random.randrange(int(self.atkl), int(self.atkh))
 
     def take_damage(self, dmg):
         """take damage"""
@@ -119,10 +128,13 @@ class Person:
             i += 1
 
     def choose_item(self):
+        """prints out the menu of items the player has.
+            doesnt show the items with 0 quantity
+        """
         i = 1
         print("-"*50)
         print(f"\r{Bcolors.OKGREEN}{Bcolors.BOLD}YOUR ITEMS {Bcolors.ENDC}")
-        self.test()
+        self.pop_items()
         for item in self.items:
             # changes color of the quantity if its low
             if item.qty == 1:
@@ -136,15 +148,80 @@ class Person:
             else:
                 pass
 
-    def optimize_items(self):
+    def pop_items(self):
+        """moves the item with 0 quantity to the end of the list.
+            support method for choose_item()
+        """
         i = 0
         print(type(self.items))
+        x = -1
         for index in range(len(self.items)):
-            if self.items[index].qty == 0:
-                self.items.append(self.items[index])
-                self.items.pop(index) 
-            
 
+            if self.items[index].qty < 1:
+                # self.items.append(self.items[index])
+                x = index
+        if x != -1:
+            self.items.pop(x)
+        print(123456789)
+
+    def compare_stats(self, other):
+        """Compare stats of two instances of Player Class"""
+        hp = self.hp > other.hp
+        mp = self.mp > other.mp
+        atk = self.atk > other.atk
+        df = self.df > other.df
+        lvl = self.level > other.level
+
+        if hp == True:
+            hp = Bcolors.OKGREEN + str(self.hp) + \
+                "  >  " + str(other.hp) + Bcolors.ENDC
+        elif hp == False:
+            hp = Bcolors.FAIL + str(self.hp) + "  <  " + \
+                str(other.hp) + Bcolors.ENDC
+
+        if mp == True:
+            mp = Bcolors.OKGREEN + str(self.mp) + \
+                "  >  " + str(other.mp) + Bcolors.ENDC
+        elif mp == False:
+            mp = Bcolors.FAIL + str(self.mp) + "  <  " + \
+                str(other.mp) + Bcolors.ENDC
+
+        if atk == True:
+            atk = Bcolors.OKGREEN + \
+                str(self.atk) + "  >  " + str(other.atk) + Bcolors.ENDC
+        elif atk == False:
+            atk = Bcolors.FAIL + str(self.atk) + \
+                "  <  " + str(other.atk) + Bcolors.ENDC
+
+        if df == True:
+            df = Bcolors.OKGREEN + str(self.df) + \
+                "  >  " + str(other.df) + Bcolors.ENDC
+        elif df == False:
+            df = Bcolors.FAIL + str(self.df) + "  <  " + \
+                str(other.df) + Bcolors.ENDC
+
+        if self.level == other.level:
+            lvl = str(self.level) + " == " + str(other.level)
+        elif lvl == True:
+            lvl = Bcolors.OKGREEN + \
+                str(self.level) + "  >  " + str(other.level) + Bcolors.ENDC
+        elif lvl == False:
+            lvl = Bcolors.FAIL + str(self.level) + \
+                "  <  " + str(other.level) + Bcolors.ENDC
+
+        print(f"    {self.name}    {other.name}")
+        print(f"HP: {hp}\nMP: {mp}\nATK: {atk}\nDEF: {df}\nLEVEL: {lvl}")
+
+    def __str__(self):
+        """Returns the breakdown of player stats,spells and inverntory"""
+
+        magic = ""
+        inventory = ""
+        for spell in self.magic:
+            magic += " " + spell.name
+        for item in self.items:
+            inventory += " " + item.name
+        return f"HP:{self.hp}/{self.max_hp}\nMP:{self.mp}/{self.max_mp}\nATK:{self.atk}\nDEF:{self.df}\nLVL:{self.level}\nCREDITS:{self.money}\nMAGIC:{magic}\nINVERNTORY:{inventory}"
 
 class Spell:
 
@@ -179,6 +256,9 @@ class Spell:
     def get_spell_type(self):
         return self.typ
 
+    def __str__(self):
+        return self.name
+
 # INventory
 
 
@@ -204,6 +284,9 @@ class Item:
     def reduce_quantity(self):
         self.qty -= 1
 
+    def to_tuple(self):
+        return self.name, self.typ, self.description, self.prop, self.qty, self.price
+
 
 class Shop:
 
@@ -227,10 +310,11 @@ class Shop:
             print("-"*50)
             i += 1
         while True:
+            # try block to make sure that the input is within range and upon pressing only enter it exits the funtion
             try:
-                print("press ENter to go back")
+                print("press enter to go back")
                 item_choice = int(input("Choose an item to buy: ")) - 1
-                self.items[item_choice+1]
+                self.items[item_choice]
                 verify = self.items[item_choice]
             except IndexError:
                 print(
@@ -239,12 +323,13 @@ class Shop:
                 return None
             else:
                 break
-
+        # if player doesnt have sufficient money to buy the item
         if player.money < self.items[item_choice].price:
             print(
                 f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
             return None
 
+        # asks how many items the player wants to buy
         while True:
             try:
                 buy_qty = int(
@@ -256,6 +341,7 @@ class Shop:
 
         total = buy_qty*self.items[item_choice].price
 
+        # if player buys more items than he can afford
         if total > player.money:
             print(
                 f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
@@ -264,72 +350,97 @@ class Shop:
             print(
                 f"{Bcolors.OKGREEN}You successfully bought {buy_qty} x {self.items[item_choice].name} for {total} credits.{Bcolors.ENDC}")
             print(f"Your remaining credits are: {player.money}")
-            self.items[item_choice].qty += buy_qty
-            
-        # IF THE PLAYER DOESNT HAVE ENOUGH CASH
-        # if player.money < self.items[item_choice].price:
-        #     print(f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
-        # else:
-        #     player.money -= self.items[item_choice].price
-        #     print(f"{Bcolors.OKGREEN}You successfully bought {self.items[item_choice].name} for {self.items[item_choice].price} credits.{Bcolors.ENDC}")
-        # print(f"Your remaining credits are: {player.money}")
+
+            # checks if the item is present in the player's items list
+            for item in player.items:
+                item_present = False
+                # if item is present it increments the item.qty
+                if item.name == self.items[item_choice].name:
+                    player.items[item_choice].qty += buy_qty
+                    item_present = True
+                    break
+            # if item isnt present then it instantiate another object and appends it to the list
+            if item_present == False:
+                name, typ, description, prop, qty, price = self.items[item_choice].to_tuple(
+                )
+                player.items.append(
+                    Item(name, typ, description, prop, buy_qty, price))
 
 
+# # Create Black Magic
+# fire = Spell.from_string("Fire-10-100-black")
+# thunder = Spell.from_string("Thunder-10-100-black")
+# blizzard = Spell.from_string("Blizzard-10-100-black")
+# meteor = Spell.from_string("Meteor-20-200-black")
+# quake = Spell.from_string("Quake-14-140-black")
 
-
-# Create Black Magic
-fire = Spell.from_string("Fire-10-100-black")
-thunder = Spell.from_string("Thunder-10-100-black")
-blizzard = Spell.from_string("Blizzard-10-100-black")
-meteor = Spell.from_string("Meteor-20-200-black")
-quake = Spell.from_string("Quake-14-140-black")
-
-# Create White Magic
-cure = Spell.from_string("Cure-12-120-white")
-cura = Spell.from_string("Cure-18-200-white")
-
+# # Create White Magic
+# cure = Spell.from_string("Cure-12-120-white")
+# cura = Spell.from_string("Cure-18-200-white")
 
 # Create Some items
-potion = Item.from_string("Potion-potion-Heals 50 HP-50-2-70")
-hipotion = Item.from_string("HiPotion-potion-Heals 100 HP-100-1-110")
-superpotion = Item.from_string("SuperPotion-potion-Heals 500 HP-500-0-200")
-megapotion = Item.from_string(
-    "MegaPotion-potion-Heals entire party HP-9999-1-500")
-elixer = Item.from_string(
-    "Elixer-elixer-Fully Restores HP/MP of one party-9999-1-300")
-hielixer = Item.from_string(
-    "HiElixer-elixer-Fully Restores party's HP/MP-9999-2-600")
+# potion = Item.from_string("Potion-potion-Heals 50 HP-50-2-70")
+# hipotion = Item.from_string("HiPotion-potion-Heals 100 HP-100-1-110")
+# superpotion = Item.from_string("SuperPotion-potion-Heals 500 HP-500-0-200")
+# megapotion = Item.from_string(
+#     "MegaPotion-potion-Heals entire party HP-9999-1-500")
+# elixer = Item.from_string(
+#     "Elixer-elixer-Fully Restores HP/MP of one party-9999-1-300")
+# hielixer = Item.from_string(
+#     "HiElixer-elixer-Fully Restores party's HP/MP-9999-2-600")
 
-grenade = Item.from_string("Grenade-attack-Deals 500 Damage-500-1-450")
+# grenade = Item.from_string("Grenade-attack-Deals 500 Damage-500-1-450")
 
 
-potion_s = Item.from_string("Potion-potion-Heals 50 HP-50-2-70", shop=True)
-hipotion_s = Item.from_string(
-    "HiPotion-potion-Heals 100 HP-100-1-110", shop=True)
-superpotion_s = Item.from_string(
-    "SuperPotion-potion-Heals 500 HP-500-0-200", shop=True)
-megapotion_s = Item.from_string(
-    "MegaPotion-potion-Heals entire party HP-9999-1-500", shop=True)
-elixer_s = Item.from_string(
-    "Elixer-elixer-Fully Restores HP/MP of one party-9999-1-300", shop=True)
-hielixer_s = Item.from_string(
-    "HiElixer-elixer-Fully Restores party's HP/MP-9999-2-600", shop=True)
+# potion_s = Item.from_string("Potion-potion-Heals 50 HP-50-2-70", shop=True)
+# hipotion_s = Item.from_string(
+#     "HiPotion-potion-Heals 100 HP-100-1-110", shop=True)
+# superpotion_s = Item.from_string(
+#     "SuperPotion-potion-Heals 500 HP-500-0-200", shop=True)
+# megapotion_s = Item.from_string(
+#     "MegaPotion-potion-Heals entire party HP-9999-1-500", shop=True)
+# elixer_s = Item.from_string(
+#     "Elixer-elixer-Fully Restores HP/MP of one party-9999-1-300", shop=True)
+# hielixer_s = Item.from_string(
+#     "HiElixer-elixer-Fully Restores party's HP/MP-9999-2-600", shop=True)
 
-grenade_s = Item.from_string(
-    "Grenade-attack-Deals 500 Damage-500-1-450", shop=True)
+# grenade_s = Item.from_string(
+#     "Grenade-attack-Deals 500 Damage-500-1-450", shop=True)
 
-player_items = [potion, hipotion, superpotion,
-                megapotion, elixer, hielixer, grenade]
-player_spells = [fire, thunder, blizzard, meteor, quake, cure, cura]
-shop_items = [potion_s, hipotion_s, superpotion_s, megapotion_s,
-              elixer_s, hielixer_s, grenade_s]
+# player_items = [potion, hipotion, superpotion,
+#                 megapotion, elixer, hielixer, gr/enade]
+# player_spells = [fire, thunder, blizzard, meteor, quake, cure, cura]
+# shop_items = [potion_s, hipotion_s, superpotion_s, megapotion_s,
+#               elixer_s, hielixer_s, grenade_s]
+player_items = []
+shop_items = []
+with open("items.json") as f_obj:
+    items = json.load(f_obj)
+for item in items:
+    player_items.append(Item.from_string(item))
+    shop_items.append(Item.from_string(item,shop=True))
 
-# INSTANTIATION
-player = Person(460, 65, 60, 34, player_spells, player_items)
-player2 = Person(500, 70, 60, 34, player_spells, player_items)
-enemy = Person(500, 65, 45, 25)
+if path.exists("game_data.pkl"):
+    user_in = input("Save file found, Press enter to load from file to start new game press N: ")
+    if user_in == "":
+        with open("game_data.pkl","rb") as save_file:
+            game_data = pickle.load(save_file)
+            player = game_data[0]
+            enemy = game_data[1]
+    else:
+        player = Person("Umer", 460, 65, 60, 34, items=player_items)
+        enemy = Person("Xerg", 500, 65, 45, 25)
+else:
+    player = Person("Umer", 460, 65, 60, 34, items=player_items)
+    enemy = Person("Xerg", 500, 65, 45, 25)
 
 item_shop = Shop(shop_items)
+
+# load spells data from a JSON file
+with open("spells.json") as f_obj:
+    spells = json.load(f_obj)
+for spell in spells:
+    player.mag_from_string(spell)
 
 
 running = True
@@ -339,7 +450,6 @@ print(Bcolors.FAIL + Bcolors.BOLD + "AN ENEMY ATTACKS" + Bcolors.ENDC)
 
 # Main program Block
 while running:
-
 
     print("==================================")
     player.choose_action()
@@ -352,6 +462,7 @@ while running:
         index = 0
     else:
         print(f"You chose {player.action[index]}!")
+
 
 # IF player choose to attack
     if index == 0:
@@ -382,6 +493,7 @@ while running:
         # if the user wants to go back
         if magic_choice == -1:
             continue
+    
 
         magic_damage = spell.generate_damage()
         current_mp = player.get_mp()
@@ -446,7 +558,7 @@ while running:
 
     enemy_dmg = enemy.generate_damage(player)
     player.take_damage(enemy_dmg)
-    player2.take_damage(enemy_dmg)
+    # player2.take_damage(enemy_dmg)
 
     # changes color of player's current HP according to remaining HP
     if player.get_hp() / player.get_max_hp() < 0.15:
@@ -456,7 +568,7 @@ while running:
     else:
         x = Bcolors.OKGREEN
     print(
-        f"Enemy attacks for {enemy_dmg} points")
+        f"Enemy attacks for {enemy_dmg} points", enemy.atk, enemy.df)
 
     print("============================================")
     print(
@@ -466,10 +578,6 @@ while running:
         f"PLAYER HP:{x} {player.get_hp()}/{player.get_max_hp()}{Bcolors.ENDC}")
     print(
         f"YOUR MP:{Bcolors.OKBLUE} {player.get_mp()}/{player.get_max_mp()}{Bcolors.ENDC}")
-    # print(
-    #     f"PLAYER2 HP:{x} {player2.get_hp()}/{player2.get_max_hp()}{Bcolors.ENDC}")
-    # print(
-    #     f"YOUR MP:{Bcolors.OKBLUE} {player2.get_mp()}/{player2.get_max_mp()}{Bcolors.ENDC}")
 
     # Fail or Win check
     if enemy.get_hp() == 0:
@@ -494,15 +602,31 @@ while running:
                 else:
                     print("*"*20)
                     break
-            
+
         play_again = input("Press enter to continue else type Q to quit: ")
+        
+
         if play_again.lower() == "q":
+            print("Saving Progress...")
+            player.reset_stats()
+            enemy.reset_stats()
+            game_data = [player, enemy]
+            # saving game_data in Pickle file
+            with open("game_data.pkl", "wb") as save_file:
+                pickle.dump(game_data, save_file, -1)
             running = False
         else:
-            enemy.max_hp += int(player.hp*0.1)
+            enemy.max_hp += int(player.hp)
             player.level_up()
+            enemy.atk += 5 * player.level//2
+            enemy.df += 5 * player.level//2
             enemy.reset_stats()
-            enemy.atk += 5
             running = True
+            game_data = [player,enemy]
+            print("Saving Progress...")
+            with open("game_data.pkl","wb") as save_file:
+                pickle.dump(game_data,save_file,-1)
     elif player.get_hp() == 0:
         print(f"{Bcolors.FAIL} you lost! {Bcolors.ENDC}")
+
+        running = False
