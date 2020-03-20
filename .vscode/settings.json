@@ -1,4 +1,8 @@
 {
     "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.autoComplete.extraPaths": [
+        "C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\Classes"
+    ],
+    "python.pythonPath": "C:\\Program Files\\Python38\\python.exe",
 }
