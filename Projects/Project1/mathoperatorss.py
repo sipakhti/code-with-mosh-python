@@ -1,9 +1,8 @@
-
 from assorted import str_to_int_list
+
 
 class MathOperators():
     """ contains methods to add, subtract, divide or multiply"""
-    
 
     # CONSTRUCTOR
     def __init__(self, *numbers):

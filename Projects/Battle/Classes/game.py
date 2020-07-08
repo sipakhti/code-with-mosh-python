@@ -16,7 +16,7 @@ class Bcolors:
 
 class Person:
 
-    def __init__(self, name, hp:int, mp:int, atk:int, df:int, magic=[], items=[], level=1):
+    def __init__(self, name, hp: int, mp: int, atk: int, df: int, magic=[], items=[], level=1):
 
         self.name = name
         self.max_hp = hp
@@ -31,11 +31,25 @@ class Person:
         self.items = items
         self.level = int(level)
 
+    def _calculate_hp_bar(self, player_hp):
+        if player_hp < 5:
+            color_hp = "52"
+        elif player_hp < 10:
+            color_hp = "208"
+        elif player_hp < 15:
+            color_hp = "178"
+        elif player_hp < 20:
+            color_hp = "190"
+        elif player_hp >= 20:
+            color_hp = "40"
+        hp_bar = "\033[48;5;" + color_hp + "m" + " " * player_hp + "\033[0m"
+        return hp_bar
+
     def reset_stats(self):
         self.hp = self.max_hp
         self.mp = self.max_mp
-        self.atkl = self.atk-10
-        self.atkh = self.atk+10
+        self.atkl = self.atk - 10
+        self.atkh = self.atk + 10
 
     def generate_damage(self, attackee):
         """ Generate random damage"""
@@ -87,7 +101,6 @@ class Person:
         """
         self.mp -= self.magic[i].cost
 
-
     def pop_items(self):
         """moves the item with 0 quantity to the end of the list.
             support method for choose_item()
@@ -101,15 +114,13 @@ class Person:
         if x != -1:
             self.items.pop(x)
 
-    
-    def load_magic(self,filename):
-        with open(filename,"rb") as spells:
+    def load_magic(self, filename):
+        with open(filename, "rb") as spells:
             self.magic = pickle.load(spells)
-    
-    def load_items(self,filename):
-        with open(filename,"rb") as player_items:
+
+    def load_items(self, filename):
+        with open(filename, "rb") as player_items:
             self.items = pickle.load(player_items)
-        
 
     def compare_stats(self, other):
         """Compare stats of two instances of Player Class"""
@@ -119,48 +130,35 @@ class Person:
         df = self.df > other.df
         lvl = self.level > other.level
 
-        if hp == True:
-            hp = Bcolors.OKGREEN + str(self.hp) + \
-                "  >  " + str(other.hp) + Bcolors.ENDC
-        elif hp == False:
-            hp = Bcolors.FAIL + str(self.hp) + "  <  " + \
-                str(other.hp) + Bcolors.ENDC
+        hp = self.compare_stat(hp, other)
 
-        if mp == True:
-            mp = Bcolors.OKGREEN + str(self.mp) + \
-                "  >  " + str(other.mp) + Bcolors.ENDC
-        elif mp == False:
-            mp = Bcolors.FAIL + str(self.mp) + "  <  " + \
-                str(other.mp) + Bcolors.ENDC
+        mp = self.compare_stat(mp, other)
 
-        if atk == True:
-            atk = Bcolors.OKGREEN + \
-                str(self.atk) + "  >  " + str(other.atk) + Bcolors.ENDC
-        elif atk == False:
-            atk = Bcolors.FAIL + str(self.atk) + \
-                "  <  " + str(other.atk) + Bcolors.ENDC
+        atk = self.compare_stat(atk, other)
 
-        if df == True:
-            df = Bcolors.OKGREEN + str(self.df) + \
-                "  >  " + str(other.df) + Bcolors.ENDC
-        elif df == False:
-            df = Bcolors.FAIL + str(self.df) + "  <  " + \
-                str(other.df) + Bcolors.ENDC
+        df = self.compare_stat(df, other)
 
-        if self.level == other.level:
-            lvl = str(self.level) + " == " + str(other.level)
-        elif lvl == True:
-            lvl = Bcolors.OKGREEN + \
-                str(self.level) + "  >  " + str(other.level) + Bcolors.ENDC
-        elif lvl == False:
-            lvl = Bcolors.FAIL + str(self.level) + \
-                "  <  " + str(other.level) + Bcolors.ENDC
+        lvl = self.compare_level(lvl, other)
 
         print(f"    {self.name}    {other.name}")
         print(f"HP: {hp}\nMP: {mp}\nATK: {atk}\nDEF: {df}\nLEVEL: {lvl}")
 
+    def compare_stat(self, stat, other):
+        if stat:
+            stat = Bcolors.OKGREEN + str(self.df) + \
+                 "  >  " + str(other.df) + Bcolors.ENDC
+        elif not stat:
+            stat = Bcolors.FAIL + str(self.df) + "  <  " + \
+                   str(other.df) + Bcolors.ENDC
+        return stat
 
+    def compare_level(self, lvl, other):
+        if self.level == other.level:
+            lvl = str(self.level) + " == " + str(other.level)
+        else:
+            lvl = self.compare_stat(lvl, other)
 
+        return lvl
 
     def __str__(self):
         """Returns the breakdown of player stats,spells and inverntory"""
@@ -176,75 +174,65 @@ class Person:
 
 class Enemy(Person):
 
-    def __init__(self,name,hp,mp,atk,df):
-        super().__init__(name,hp,mp,atk,df)
+    def __init__(self, name, hp, mp, atk, df):
+        super().__init__(name, hp, mp, atk, df)
 
     def get_enemy_stats(self):
 
-            # Logic for dynamically adjusting the string to accomodate for different length strings
-        player_mp_len = ' '*len(str(self.mp)+'/'+str(self.max_mp))
-        player_hp_len = ' '*len(str(self.hp)+'/'+str(self.max_hp))
-    # Logic for HP bar
-        player_hp = int(((self.hp/self.max_hp)*100) * 40 / 100)
-        if player_hp < 5:
-            color_hp = "52"
-        elif player_hp < 10:
-            color_hp = "208"
-        elif player_hp < 15:
-            color_hp = "178"
-        elif player_hp < 20:
-            color_hp = "190"
-        elif player_hp >= 20:
-            color_hp = "40"
-        hp_bar = "\033[48;5;"+color_hp+"m" + " "*player_hp + "\033[0m"
+        # Logic for dynamically adjusting the string to accomodate for different length strings
+        player_mp_len = ' ' * len(str(self.mp) + '/' + str(self.max_mp))
+        player_hp_len = ' ' * len(str(self.hp) + '/' + str(self.max_hp))
+        # Logic for HP bar
+        player_hp = int(((self.hp / self.max_hp) * 100) * 40 / 100)
+        hp_bar = self._calculate_hp_bar(player_hp)
         # Logic for MP bar
-        player_mp = int(((self.mp/self.max_mp)*100)*10/100)
-        mp_bar = "\033[44m"+" "*player_mp + "\033[0m"
-    # Console output
-        
-        print(f"{player_hp_len}       {' '*(len(self.name) - 4)}     {'_'*40}")
-        print(f'{self.name}  HP: {self.hp}/{self.max_hp} |{hp_bar}{" "*(40-player_hp)}|')
+        player_mp = int(((self.mp / self.max_mp) * 100) * 10 / 100)
+        mp_bar = "\033[44m" + " " * player_mp + "\033[0m"
+        # Console output
+
+        print(f"{player_hp_len}       {' ' * (len(self.name) - 4)}     {'_' * 40}")
+        print(f'{self.name}  HP: {self.hp}/{self.max_hp} |{hp_bar}{" " * (40 - player_hp)}|')
+
 
     def reset_stats(self):
         self.hp = self.max_hp
         self.mp = self.max_mp
-        self.atkl = self.atk-10
-        self.atkh = self.atk+10
+        self.atkl = self.atk - 10
+        self.atkh = self.atk + 10
         for item in self.items:
             item.qty += 1
 
+
 class Player(Person):
 
-    def __init__(self,name,hp,mp,atk,df,money=0):
-        super().__init__(name,hp,mp,atk,df)
+    def __init__(self, name, hp, mp, atk, df, money=0):
+        super().__init__(name, hp, mp, atk, df)
         self.money = int(money)
         self.action = ["Attack", "Magic", "Item"]
 
-
     def level_up(self):
         self.level += 1
-        self.max_hp += int(self.max_hp * (self.level/200))
-        self.max_mp += int(self.max_mp * (self.level/200))
-        self.atk = int(self.atk * (1+self.level/50))
-        self.df = int(self.df * (1+self.level/50))
-        self.atkl = self.atk-10
-        self.atkh = self.atk+10
+        self.max_hp += int(self.max_hp * (self.level / 200))
+        self.max_mp += int(self.max_mp * (self.level / 200))
+        self.atk = int(self.atk * (1 + self.level / 50))
+        self.df = int(self.df * (1 + self.level / 50))
+        self.atkl = self.atk - 10
+        self.atkh = self.atk + 10
 
         self.reset_stats()
-
 
     def choose_action(self):
         """prints on the screen the actions that a user can take"""
         i = 1
-        print(Bcolors.OKBLUE, "What do you want to do ",self.name, Bcolors.ENDC)
+        print(Bcolors.OKBLUE, "What do you want to do ", self.name, Bcolors.ENDC)
         for item in self.action:
             print("    " + str(i) + ":", item)
             i += 1
-    
+
     def choose_magic(self):
         """prints on the screen availible spells"""
-        print("-"*50)
-        print(Bcolors.OKGREEN, "Which spell to cast, ",self.name, Bcolors.ENDC)
+        print("-" * 50)
+        print(Bcolors.OKGREEN, "Which spell to cast, ", self.name, Bcolors.ENDC)
         i = 1
         for spell in self.magic:
             # color codes the COST if MP is not sufficient
@@ -253,7 +241,7 @@ class Player(Person):
             else:
                 x = Bcolors.OKGREEN
             print(
-                f"    {i}: {spell.name} {x} (cost: {spell.cost}) {Bcolors.ENDC} (damage: {spell.dmg}) (Remaining : {self.mp//spell.cost})")
+                f"    {i}: {spell.name} {x} (cost: {spell.cost}) {Bcolors.ENDC} (damage: {spell.dmg}) (Remaining : {self.mp // spell.cost})")
             i += 1
 
     def choose_item(self):
@@ -261,8 +249,9 @@ class Player(Person):
             doesnt show the items with 0 quantity
         """
         i = 1
-        print("-"*50)
-        print(f"\r{Bcolors.OKGREEN}{Bcolors.BOLD}{self.name} these are the items currently in your inventory {Bcolors.ENDC}")
+        print("-" * 50)
+        print(
+            f"\r{Bcolors.OKGREEN}{Bcolors.BOLD}{self.name} these are the items currently in your inventory {Bcolors.ENDC}")
         self.pop_items()
         for item in self.items:
             # changes color of the quantity if its low
@@ -279,31 +268,23 @@ class Player(Person):
 
     def get_player_stats(self):
         """Prints out a nice formatted version of the instance stats"""
-    # Logic for dynamically adjusting the string to accomodate for different length strings
-        player_mp_len = ' '*len(str(self.mp)+'/'+str(self.max_mp))
-        player_hp_len = ' '*len(str(self.hp)+'/'+str(self.max_hp))
-    # Logic for HP bar
-        player_hp = int(((self.hp/self.max_hp)*100) * 25 / 100)
-        if player_hp < 5:
-            color_hp = "52"
-        elif player_hp < 10:
-            color_hp = "208"
-        elif player_hp < 15:
-            color_hp = "178"
-        elif player_hp < 20:
-            color_hp = "190"
-        elif player_hp >= 20:
-            color_hp = "40"
-        hp_bar = "\033[48;5;"+color_hp+"m" + " "*player_hp + "\033[0m"
+        # Logic for dynamically adjusting the string to accomodate for different length strings
+        player_mp_len = ' ' * len(str(self.mp) + '/' + str(self.max_mp))
+        player_hp_len = ' ' * len(str(self.hp) + '/' + str(self.max_hp))
+        # Logic for HP bar
+        player_hp = int(((self.hp / self.max_hp) * 100) * 25 / 100)
+
+        hp_bar = self._calculate_hp_bar(player_hp)
         # Logic for MP bar
-        player_mp = int(((self.mp/self.max_mp)*100)*10/100)
-        mp_bar = "\033[44m"+" "*player_mp + "\033[0m"
-    # Console output
-        
-        print(f"{' '*len(self.name)}      {player_hp_len}  {'_'*25}  {player_mp_len}      {'_'*10}")
-        print(f'{self.name}  HP: {self.hp}/{self.max_hp} |{hp_bar}{" "*(25-player_hp)}| {self.mp}/{self.max_mp} MP: |{mp_bar}{" "*(10-player_mp)}|')
-    
-   
+        player_mp = int(((self.mp / self.max_mp) * 100) * 10 / 100)
+        mp_bar = "\033[44m" + " " * player_mp + "\033[0m"
+        # Console output
+
+        print(f"{' ' * len(self.name)}      {player_hp_len}  {'_' * 25}  {player_mp_len}      {'_' * 10}")
+        print(
+            f'{self.name}  HP: {self.hp}/{self.max_hp} |{hp_bar}{" " * (25 - player_hp)}| {self.mp}/{self.max_mp} MP: |{mp_bar}{" " * (10 - player_mp)}|')
+
+
 class Spell:
 
     # Constructor
@@ -341,11 +322,6 @@ class Spell:
         return f"{self.name} cost:{self.cost} damage:{self.dmg} type:{self.typ}"
 
 
-
-
-
-
-
 class Item:
 
     # Constructor 
@@ -356,7 +332,6 @@ class Item:
         self.prop = int(prop)
         self.qty = int(qty)
         self.price = int(price)
-        
 
     @classmethod
     def from_string(cls, item_string, shop=False):
@@ -366,7 +341,8 @@ class Item:
            correct format = name-type-descripton-prop-qty-price
         """
         name, typ, description, prop, qty, price = item_string.split("-")
-        return cls(name, typ, description, prop, qty, price) if shop == False else cls(name, typ, description, prop, 99, price)
+        return cls(name, typ, description, prop, qty, price) if shop == False else cls(name, typ, description, prop, 99,
+                                                                                       price)
 
     def reduce_quantity(self):
         """ Reduces quantity of the item by 1"""
@@ -387,36 +363,34 @@ class Shop:
     def __init__(self, items=[]):
         self.items = items
 
-
-    def load_shop_items(self,filename):
+    def load_shop_items(self, filename):
         """ populates the shop attribute items from a Json file """
-        with open(filename,"rb") as f_obj:
+        with open(filename, "rb") as f_obj:
             self.items = pickle.load(f_obj)
-            
 
     def sell_items(self, player):
-        print("*"*20)
+        print("*" * 20)
         print(Bcolors.BOLD, "The shop is selling:", Bcolors.ENDC)
-        print(f"{Bcolors.OKGREEN}{Bcolors.BOLD}{Bcolors.UNDERLINE}{player.name.strip()}'s{Bcolors.ENDC} current credits: {Bcolors.OKBLUE}{Bcolors.BOLD}{player.money}{Bcolors.ENDC}")
-        print(Bcolors.OKGREEN,"~"*50,Bcolors.ENDC)
+        print(
+            f"{Bcolors.OKGREEN}{Bcolors.BOLD}{Bcolors.UNDERLINE}{player.name.strip()}'s{Bcolors.ENDC} current credits: {Bcolors.OKBLUE}{Bcolors.BOLD}{player.money}{Bcolors.ENDC}")
+        print(Bcolors.OKGREEN, "~" * 50, Bcolors.ENDC)
         i = 1
         for item in self.items:
             if item.price > player.money:
                 x = Bcolors.FAIL
             else:
                 x = Bcolors.OKGREEN
-        
+
             print(
                 f"{i}: {item.name}  {item.description} {x} {item.price}{Bcolors.ENDC}")
 
-            print(Bcolors.WARNING,Bcolors.BOLD,"-"*50,Bcolors.ENDC)
+            print(Bcolors.WARNING, Bcolors.BOLD, "-" * 50, Bcolors.ENDC)
             i += 1
         while True:
             # try block to make sure that the input is within range and upon pressing only enter it exits the funtion
             try:
                 print("press enter to go back")
                 item_choice = int(input("Choose an item to buy: ")) - 1
-                self.items[item_choice]
                 verify = self.items[item_choice]
             except IndexError:
                 print(
@@ -425,13 +399,13 @@ class Shop:
                 return None
             else:
                 break
-# if player doesnt have sufficient money to buy the item
+        # if player doesnt have sufficient money to buy the item
         if player.money < self.items[item_choice].price:
             print(
                 f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
             return None
 
-# asks how many items the player wants to buy
+        # asks how many items the player wants to buy
         while True:
             try:
                 buy_qty = int(
@@ -441,9 +415,9 @@ class Shop:
             else:
                 break
 
-        total = buy_qty*self.items[item_choice].price
+        total = buy_qty * self.items[item_choice].price
 
-# if player buys more items than he can afford
+        # if player buys more items than he can afford
         if total > player.money:
             print(
                 f"{Bcolors.FAIL}YOU DONOT HAVE ENOUGH CREDITS.KILL SOME MORE ENEMIES AND THEN COME BACK{Bcolors.ENDC}")
@@ -453,7 +427,7 @@ class Shop:
                 f"{Bcolors.OKGREEN}{player.name} successfully bought {buy_qty} x {self.items[item_choice].name} for {total} credits.{Bcolors.ENDC}")
             print(f"{player.name.strip()}'s remaining credits are: {player.money}")
 
-# checks if the item is present in the player's items list
+            # checks if the item is present in the player's items list
             for item in player.items:
                 item_present = False
                 # if item is present it increments the item.qty
@@ -461,10 +435,8 @@ class Shop:
                     player.items[item_choice].qty += buy_qty
                     item_present = True
                     break
-# if item isnt present then it will instantiate another object and appends it to the list
-            if item_present == False:
-                name, typ, description, prop, qty, price = self.items[item_choice].to_tuple(
-                )
-                player.items.append(self.items[item_choice])
-                player.items[-1].qty = buy_qty
-                
+            # if item isnt present then it will instantiate another object and appends it to the list
+            if not item_present:
+                name, typ, description, prop, qty, price = self.items[item_choice].to_tuple()
+            player.items.append(self.items[item_choice])
+            player.items[-1].qty = buy_qty

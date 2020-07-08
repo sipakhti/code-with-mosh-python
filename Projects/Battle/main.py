@@ -5,8 +5,6 @@ import pickle
 from Classes.game import *
 
 
-
-
 def input_name(players):
     length = 0
     for player in players:
@@ -16,10 +14,12 @@ def input_name(players):
             length = len(player_name)
     return length
 
-def justify_player_name(players,length):
+
+def justify_player_name(players, length):
     for player in players:
         while len(player.name) < length:
             player.name += " "
+
 
 def justify_enemy_name(*enemies):
     length = 0
@@ -29,9 +29,6 @@ def justify_enemy_name(*enemies):
     for enemy in enemies:
         while len(enemy.name) < length:
             enemy.name += " "
-
-
-    
 
 
 # # Create Black Magic
@@ -81,59 +78,13 @@ def justify_enemy_name(*enemies):
 #               elixer_s, hielixer_s, grenade_s]
 
 
-data_files = {"user_data":"C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\game_data.pkl",
-                "player_items":"C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\player_items.pkl",
-                "spells":"C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\spells.pkl",
-                "shop_items":"C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\shop_item.pkl"}
+data_files = {"user_data": "C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\game_data.pkl",
+              "player_items": "C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\player_items.pkl",
+              "spells": "C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\spells.pkl",
+              "shop_items": "C:\\Users\\omers\\Desktop\\HelloWorld\\Projects\\Battle\\shop_item.pkl"}
 
 
-if path.exists(data_files["user_data"]):
-    user_in = input("Save file found, Press enter to load from file to start new game press N: ")
-    # Continue the game where it left off
-    if user_in == "":
-        with open(data_files["user_data"],"rb") as save_file:
-            game_data = pickle.load(save_file)
-            players = game_data[0] # load player data
-            enemies = game_data[1] # load enemy data
-    # start the game all over again
-    else:
-        while True:
-            try:
-                num_players = int(input("How many players wanna play: "))
-                num_enemies = int(input("How many enemies do you want to fight with"))
-            except ValueError:
-                print("Invalid number!")
-            else:
-                break
-
-        players = []  # Empty players list which will be populated with multiple player instances
-        for num in range(num_players):
-            players.append(Player("player",460,65,60,343))
-    
-        # input name and modify it for a cleaner and consistent formatting
-        justify_player_name(players,input_name(players))
-
-        # add items and magic for every player
-
-        for player in players:
-            player.load_items(data_files["player_items"])
-            player.load_magic(data_files["spells"])
-
-        enemies = []
-        for num in range(num_enemies):
-            enemies.append(Enemy(f"Enemy{num}",700,65,45,25))
-
-
-    if bool(enemies) == False:
-        enemy_count = players[0].level//5 + 1
-        for num in range(enemy_count):
-            enemies.append(Enemy(f"Enemy {num+1}",700,65,45,25))
-
-
-
-
-# if no save_game is found
-else:
+def new_game():
     while True:
         try:
             num_players = int(input("How many players wanna play: "))
@@ -142,36 +93,62 @@ else:
             print("Invalid number!")
         else:
             break
-
     players = []  # Empty players list which will be populated with multiple player instances
     for num in range(num_players):
-        players.append(Player("player",460,65,60,34 ))
-    
+        players.append(Player(name="player", hp=460, mp=65, atk=60, df=34))
     # input name and modify it for a cleaner and consistent formatting
-    justify_player_name(players,input_name(players))
-
+    justify_player_name(players, input_name(players))
     # add items and magic for every player
     for player in players:
         player.load_items(data_files["player_items"])
         player.load_magic(data_files["spells"])
-        
-        
     enemies = []
     for num in range(num_enemies):
-        enemies.append(Enemy(f"Enemy {num+1}",700,65,45,25))
+        enemies.append(Enemy(name=f"Enemy {num + 1}", hp=700, mp=65, atk=45, df=25))
+
+    return players, enemies
+
+
+def save_game(file_path):
+    with open(file_path, "rb") as save_file:
+        game_data = pickle.load(save_file)
+        players = game_data[0]  # load player data
+        enemies = game_data[1]  # load enemy data
+    return players, enemies
+
+
+def initialize_game():
+    global players, enemies
+    if path.exists(data_files["user_data"]):
+        user_in = input("Save file found, Press enter to load from file to start new game press N: ")
+        # Continue the game where it left off
+        if user_in == "":
+            players, enemies = save_game(data_files["user_data"])
+        # start the game all over again
+        else:
+            players, enemies = new_game()
+
+        if not bool(enemies):
+            enemy_count = players[0].level // 5 + 1
+            for num in range(enemy_count):
+                enemies.append(Enemy(name=f"Enemy {num + 1}", hp=700, mp=65, atk=45, df=25))
+
+
+    # if no save_game is found
+    else:
+        players, enemies = new_game()
+
+    return players, enemies
+
+
+players, enemies = initialize_game()
 
 # instantiate Shop 
 item_shop = Shop()
-item_shop.load_shop_items(data_files["shop_items"]) # load shop items
- 
-# enemy = Person("Xerg", 1500, 65, 45, 25)
+item_shop.load_shop_items(data_files["shop_items"])  # load shop items
 
 for enemy in enemies:
     enemy.load_items(data_files["player_items"])
-
-
-
-
 
 running = True
 defeated_enemies = []
@@ -181,13 +158,13 @@ print(Bcolors.FAIL + Bcolors.BOLD + "AN WILD TROLLINA APPEARS" + Bcolors.ENDC)
 while running:
     for player in players:
         player.get_player_stats()
-    
+
     print("\n")
     for enemy in enemies:
         enemy.get_enemy_stats()
-    #enemy2.get_enemy_stats()
+    # enemy2.get_enemy_stats()
     print("==================================")
-  
+
     for player in players:
         player.choose_action()
         choice = input("Choose action: ")
@@ -200,18 +177,17 @@ while running:
         else:
             print(f"{player.name.strip()} chose {player.action[index]}!")
 
-
-# IF player choose to attack
+        # IF player choose to attack
         if index == 0:
             target = random.choice(enemies)
-            print("="*50)
+            print("=" * 50)
             dmg = player.generate_damage(target)
             target.take_damage(dmg)
             print(f"{player.name.upper()} did {dmg} damage to the {target.name}.")
 
-# IF player choose to use magic
+        # IF player choose to use magic
         elif index == 1:
-            print("="*50)
+            print("=" * 50)
             player.choose_magic()
             print("Enter 0 if you want to go to the previous menu")
 
@@ -228,21 +204,20 @@ while running:
                         f"{Bcolors.WARNING}NO SUCH SPELL EXIST. SELECT THE CORRECT SPELL{Bcolors.ENDC}")
                 else:
                     break
-        # if the user wants to go back
+            # if the user wants to go back
             if magic_choice == -1:
                 continue
-    
 
             magic_damage = spell.generate_damage()
             current_mp = player.get_mp()
 
-        # to make sure spell is only cast when their is enough mp
+            # to make sure spell is only cast when their is enough mp
             if spell.cost > current_mp:
                 print(Bcolors.FAIL, "\n not enough MP \n", Bcolors.ENDC)
                 continue
 
             player.reduce_mp(magic_choice)
-        # spells that attack (BLACK)
+            # spells that attack (BLACK)
             if spell.typ.lower() == "black":
                 target = random.choice(enemies)
                 print(
@@ -250,7 +225,7 @@ while running:
                 target.take_damage(magic_damage)
                 print(f"the player did {magic_damage} damage to the enemy.")
 
-        # Spells that Heal (WHITE)
+            # Spells that Heal (WHITE)
             elif spell.typ.lower() == "white":
                 print(
                     f"{Bcolors.OKGREEN}{player.name} used {spell.name} which Heals {magic_damage} HP {Bcolors.ENDC} ")
@@ -258,9 +233,9 @@ while running:
                 player.heal_hp(spell.dmg)
                 print(f"YOUR HP: {player.get_hp()}")
 
-# if player choose ITEM
+        # if player choose ITEM
         elif index == 2:
-            print("="*50)
+            print("=" * 50)
             player.choose_item()
             while True:
 
@@ -273,7 +248,7 @@ while running:
                 else:
                     break
 
-        # if the user wants to go back
+            # if the user wants to go back
             if item_choice == -1:
                 continue
 
@@ -296,26 +271,25 @@ while running:
                 target = random.choice(enemies)
                 target.take_damage(item.prop)
 
-
-# ENEMY attacks
+    # ENEMY attacks
 
     # chooses a player randomly to attack
-    
+
     for enemy in enemies:
         if bool(players) == False:
             break
         attack = True
-        if enemy.hp/enemy.max_hp < 0.2:
-            
+        if enemy.hp / enemy.max_hp < 0.2:
+
             for item in enemy.items:
-                if item.typ == "elixer"  and item.qty > 0:
+                if item.typ == "elixer" and item.qty > 0:
                     enemy.heal_hp(item.prop)
                     item.qty -= 1
                     print("enemy used elixer..")
                     attack = False
                     break
-        
-        elif enemy.hp/enemy.max_hp < 0.6:
+
+        elif enemy.hp / enemy.max_hp < 0.6:
             for item in enemy.items:
                 if item.typ == "potion" and item.qty > 0:
                     enemy.heal_hp(item.prop)
@@ -323,8 +297,7 @@ while running:
                     print(f"{enemy.name} used {item.name} which HEALS for {item.prop}")
                     attack = False
                     break
-           
-        
+
         if attack:
             target = random.choice(players)
             enemy_dmg = enemy.generate_damage(target)
@@ -332,12 +305,9 @@ while running:
             print(
                 f"Enemy attacks {target.name} for {enemy_dmg} points")
 
+    # WIN
 
-
-
-# WIN
-
-        # Removes the defeated enemy from the enemies list and add it to the deafeated enemies list
+    # Removes the defeated enemy from the enemies list and add it to the deafeated enemies list
     for y in range(len(enemies)):
         try:
             if enemies[y].get_hp() == 0:
@@ -346,12 +316,9 @@ while running:
                 enemies.pop(y)
         except IndexError:
             continue
-        else:
-            pass
-        # if all the enemies are defeated
-        if bool(enemies) == False:
 
-            
+        # if all the enemies are defeated
+        if not enemies:
 
             print(f"{Bcolors.OKGREEN} you win! {Bcolors.ENDC}")
 
@@ -372,11 +339,11 @@ while running:
                         if remain_in_shop.lower() != "q":
                             continue
                         else:
+                            print("*" * 20)
                             break
-                            print("*"*20)
-                
+
             play_again = input("Press enter to continue else type Q to quit: ")
-    
+
             if play_again.lower() == "q":
                 for player in players:
                     player.reset_stats()
@@ -393,26 +360,25 @@ while running:
             elif play_again == "":
                 for player in players:
                     player.level_up()
-            
+
             for enemy in defeated_enemies:
                 enemy.max_hp += int(players[0].hp)
-                enemy.atk += 5 * players[0].level//2
-                enemy.df += 5 * players[0].level//2
+                enemy.atk += 5 * players[0].level // 2
+                enemy.df += 5 * players[0].level // 2
                 enemy.reset_stats()
                 enemies.append(enemy)
             defeated_enemies.clear()
-            running = True
-            game_data = [players,enemies]
+            game_data = [players, enemies]
             print("Saving Progress...")
-            with open(data_files["user_data"],"wb") as save_file:
-                pickle.dump(game_data,save_file,-1)
-# LOSE
-    
+            with open(data_files["user_data"], "wb") as save_file:
+                pickle.dump(game_data, save_file, -1)
+    # LOSE
+
     if bool(players) == False:
         running = False
         print("All the players have been eliminated!")
         print("THE GAME IS CLOSING!!!")
-    
+
     else:
         for x in range(len(players)):
             if players[x].hp == 0:
@@ -420,6 +386,3 @@ while running:
                 print(f"{players[x].name} has been eliminated")
                 players.pop(x)
                 break
-                
-
-
